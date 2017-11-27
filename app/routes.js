@@ -12,10 +12,10 @@ module.exports = function(app, client) {
 
 	//login endpoint
 	app.get('/', function(req, res) {
-		if (req.session && req.session.user)
-			res.redirect('/feed');
-		res.render('login.ejs', {message: ""});
-	});	
+		if (req.isAuthenticated())
+			res.redirect('/profile');
+		res.render('login.ejs', { message: "" });
+	});
 
 	app.post('/', function(req, res) {
 
@@ -87,5 +87,15 @@ module.exports = function(app, client) {
 
 
 	});
+
+	function isLoggedIn(req, res, next) {
+
+		//USER IS AUTHENTICATED
+		if (req.isAuthenticated())
+			return next();
+
+		//IF NOT REDITECT TO HOME PAGE
+		res.redirect('/');
+	}
 
 }
