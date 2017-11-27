@@ -5,4 +5,9 @@ var clientUser = new elasticsearch.Client({
 	log: 'info'
 });
 
-module.exports = clientUser
+var mongo = {
+	'url': 'mongodb://localhost/user'
+}
+
+module.exports.elastic = clientUser;
+module.exports.mongo = mongo;

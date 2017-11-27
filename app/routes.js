@@ -5,7 +5,8 @@ Maintain two indexes:
 */
 //Source url: http://opensourceconnections.com/blog/2016/09/09/better-recsys-elasticsearch/
 
-// app/routes.js
+var Login = require('./models/login');
+
 
 module.exports = function(app, client) {
 
@@ -16,6 +17,10 @@ module.exports = function(app, client) {
 		res.render('login.ejs', {message: ""});
 	});	
 
+	app.post('/', function(req, res) {
+
+	});
+
 	//feed endpoint
 	app.get('/feed', function(req, res) {
 		
@@ -23,7 +28,7 @@ module.exports = function(app, client) {
 			res.render('login.ejs', {message: "Username not selected"});
 		
 		//retrieve tags from user
-		var userTagSearch = client.search({
+		var userTagSearch = client.elastic.search({
 			index: 'user',
 			type: 'document',
 			body: {
@@ -37,7 +42,7 @@ module.exports = function(app, client) {
 		var userTags;
 
 		// search for tags_like_each in ES user
-		var questionSuggestionSearch = client.search({
+		var questionSuggestionSearch = client.elastic.search({
 			index: 'user',
 			type: 'document',
 			body: {
