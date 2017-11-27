@@ -56,7 +56,7 @@ module.exports = function(app, client) {
 	}));
 
 	//feed endpoint
-	app.get('/feed', function(req, res) {
+	app.get('/feed', isLoggedIn, function(req, res) {
 		
 		if (!req.session || !req.session.user)
 			res.render('login.ejs', {message: "Username not selected"});
