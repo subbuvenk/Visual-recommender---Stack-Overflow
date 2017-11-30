@@ -5,10 +5,10 @@ Maintain two indexes:
 */
 //Source url: http://opensourceconnections.com/blog/2016/09/09/better-recsys-elasticsearch/
 
-var Login = require('./models/login');
+var Activity = require('./models/activity');
 
 
-module.exports = function(app, client) {
+module.exports = function(app, client, passport) {
 
 	//login endpoint
 	app.get('/', function(req, res) {
@@ -45,7 +45,7 @@ module.exports = function(app, client) {
 
 	//signup get endpoint
 	app.get('/signup', function(req, res) {
-		res.render('signup.ejs', { message: req.flash('signupMessage') });
+		res.render('signup.ejs', { message: ''});
 	});
 
 	//signup post endpoint
@@ -58,40 +58,40 @@ module.exports = function(app, client) {
 	//feed endpoint
 	app.get('/feed', isLoggedIn, function(req, res) {
 		
-		if (!req.session || !req.session.user)
-			res.render('login.ejs', {message: "Username not selected"});
+		// if (!req.session || !req.session.user)
+		// 	res.render('login.ejs', {message: "Username not selected"});
 		
-		//retrieve tags from user
-		var userTagSearch = client.elastic.search({
-			index: 'user',
-			type: 'document',
-			body: {
-				query: {
-					match : {"user" : req.session.user},
-					_source: ["tags"]
-				}
-			}
-		});
+		// //retrieve tags from user
+		// var userTagSearch = client.elastic.search({
+		// 	index: 'user',
+		// 	type: 'document',
+		// 	body: {
+		// 		query: {
+		// 			match : {"user" : req.session.user},
+		// 			_source: ["tags"]
+		// 		}
+		// 	}
+		// });
 
-		var userTags;
+		// var userTags;
 
 		// search for tags_like_each in ES user
-		var questionSuggestionSearch = client.elastic.search({
-			index: 'user',
-			type: 'document',
-			body: {
-				query: {
-					match: {
-						tags: userTags
-					}
-				},
-				aggregations: {
-					tags_like_user: {
-						field: tags,
-						min_doc_count: 1
-					}
-				}
-			}
+		// var questionSuggestionSearch = client.elastic.search({
+		// 	index: 'user',
+		// 	type: 'document',
+		// 	body: {
+		// 		query: {
+		// 			match: {
+		// 				tags: userTags
+		// 			}
+		// 		},
+		// 		aggregations: {
+		// 			tags_like_user: {
+		// 				field: tags,
+		// 				min_doc_count: 1
+		// 			}
+		// 		}
+		// 	}
 		});
 
 		/*

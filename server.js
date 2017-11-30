@@ -20,7 +20,7 @@ require('./config/passport')(passport);
 app.use(morgan('dev'));
 app.use(cookieParser());
 app.use(bodyParser());
-app.user(bodyParser.urlencoded());
+app.use(bodyParser.urlencoded());
 
 app.use(express.static('views'));
 app.set('view engine', 'ejs');
@@ -31,7 +31,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 //routes
-require('./app/routes.js')(app, client);
+require('./app/routes.js')(app, client, passport);
 
 //launch
 app.listen(port);

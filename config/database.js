@@ -1,4 +1,4 @@
-var elasticserach = require('elasticserach')
+var elasticsearch = require('elasticsearch')
 
 var clientUser = new elasticsearch.Client({
 	host: 'localhost:9200',
