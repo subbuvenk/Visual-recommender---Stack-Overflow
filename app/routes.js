@@ -17,13 +17,6 @@ module.exports = function(app, client, passport) {
 		res.render('login.ejs', { message: "" });
 	});
 
-	// //login endpoint
-	// app.get('/', function(req, res) {
-	// 	// if (req.isAuthenticated())
-	// 	res.redirect('/searchPage');
-	// 	// res.render('login.ejs', { message: "" });
-	// });
-
 	app.get('/searchPage', function(req,res) {
 		res.render('searchPage.ejs', {result:""});
 	});
@@ -104,16 +97,6 @@ module.exports = function(app, client, passport) {
 		    }
 		    req.logIn(user, function(err) {
 			    if (err) { return next(err); }
-			    var log = new Object();
-			    log.email = user.local.email;
-			    log.action = "Login";
-			    var now = (new Date()).toJSON();
-				log.timestamp = now;
-				Login.create(log, function (error, user) {
-				if (error) {
-					console.log(error);
-				} 
-			});
 	      		return res.redirect('/searchPage');
 		    });
   		})(req, res, next);
