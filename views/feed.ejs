@@ -1,0 +1,148 @@
+<!doctype html>
+<html>
+<head>
+	<title>Stack Overflow Recommender</title>
+	<meta charset="UTF-8">   
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+	<style>
+		body {
+			padding-top:80px;
+		}
+	</style>
+</head>
+<body>
+	
+	<nav class="navbar navbar-default navbar-fixed-top">
+	    <div class="container">
+	        <!-- Brand and toggle get grouped for better mobile display -->
+	        <div class="navbar-header page-scroll">
+	            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+	                <span class="sr-only">Toggle navigation</span>
+	                <span class="icon-bar"></span>
+	                <span class="icon-bar"></span>
+	                <span class="icon-bar"></span>
+	            </button>
+	            <a class="navbar-brand" href="/"><h4>Feed</h4></a>
+	            <a class="navbar-brand" href="/searchPage"><h4>Search</h4></a>
+	            <a class="navbar-brand" href="/"><h4>Visualization</h4></a>
+	        </div>
+	        <!-- Collect the nav links, forms, and other content for toggling -->
+	        <div class="collapse navbar-collapse navbar-right" id="bs-example-navbar-collapse-1">
+	            <a class="navbar-brand" href=""><h4>Profile</h4></a>
+                <a class="navbar-brand" href="/logout"><h4>Sign out</h4></a>
+
+	        </div>
+	        <!-- /.navbar-collapse -->
+	    </div>
+	    <!-- /.container-fluid -->
+	</nav>
+
+	<div class="container">
+		<center><nav aria-label="Page navigation example">
+		  <ul class="pagination">
+		    <li class="page-item"><a class="page-link" href="/feed/prev">Previous</a></li>
+		    <li class="page-item"><a class="page-link" href="/feed/1">1</a></li>
+		    <li class="page-item"><a class="page-link" href="/feed/2">2</a></li>
+		    <li class="page-item"><a class="page-link" href="/feed/3">3</a></li>
+		    <li class="page-item"><a class="page-link" href="/feed/next">Next</a></li>
+		  </ul>
+		</nav></center>
+		<div class="col-md-12">
+			<% if(newUser) { %>
+				<div class="col-sm-6 col-sm-offset-3">
+					<h1><span class="fa fa-star fa-2x"></span> Pick your favorite tags </h1>
+					<form action="/sendFav" method="post">
+			            <div class="form-group">
+			                <select multiple class="form-control" id="favoriteTags" name = "favTagList[]">
+				                <option>Java</option>
+				                <option>Javascript</option>
+				                <option>nullpointer</option>
+				                <option>html</option>
+				                <option>node</option>
+				                <option>android</option>
+				                <option>arrays</option>
+				                <option>list</option>
+				                <option>jvm</option>
+	                		</select>
+            			</div>
+			            <div class="form-group">
+			                <label>Enter tags not available in dropdown list (comma separated)</label>
+			                <input type="text" class="form-control" name="commaSeparatedTags">
+			            </div>
+			            <button type="submit" class="btn btn-warning btn-lg">Submit</button>
+					</form>
+				</div>
+			<% } %>
+		</div>
+	     <div class="col-md-12">
+		    	<% if(result) { %>
+			     	<ol start = "<%= feedStartNumber %>">
+		    		<% for(i=0;i < result.length;i++) { %>
+		    			<div class = "row">
+		    				<div class = "col-md-7">
+		    			<h3><li><a data-toggle="collapse" href="#collapse<%= i %>" aria-expanded="false" aria-controls="collapse<%= i %>"><%= result[i]._source.content_title %> </a> </li> </h3>
+		    				</div>
+		    				<div class = "col-md-1">
+		    					<br>
+		    					<i class="fa fa-star-o fa-2x" aria-hidden="true"></i>
+		    				</div>
+		    				<div class = "col-md-4">
+		    					<br>
+		    					<ul class = "list-inline ul_<%= i %>">
+		    					<% for(j=0; j< result[i]._source.tags.length; j++) { %>
+		    						<li class="list-inline-item lead" style = "border: 2px solid #b7b7b7; border-radius: 100px;"> <%= result[i]._source.tags[j] %> </li>
+		    					<% } %>
+		    				</div>
+		    			</div>
+
+			    		<% var displayHTML = result[i]._source.content_html %>
+			    		<% displayHTML =  displayHTML.replace(/\\n/g, "<br>");%>
+		    			<% displayHTML =  displayHTML.replace("<br><br>", "");%>
+		    			<% displayHTML =  displayHTML.slice(0,-1)%>
+		    			<div class ="card">
+	    					<div class="collapse" id="collapse<%= i %>"> 
+		    				<%- displayHTML %> 
+		    				</div>
+		    			</div>
+		    		<% } %>
+		    	<% } %>
+	    	</ol>
+
+		 </div>
+		 <script>
+		 	$(".fa-star-o").click(function(){
+		 		var jsonData = new Object()
+		 		var tagList = new Array();
+		 		console.log($(this).attr("class"))
+		 		if($(this).hasClass("fa-star-o")) {
+		 			console.log("add")
+		 			$(this).closest('div').next().children('ul').children().each(function() {
+		 				tagList.push($(this).text().trim())
+		 			})
+		 			console.log(tagList)
+		 			jsonData.tagList = tagList
+		 			$.post("/addTags", jsonData, function( data ) {
+					  console.log(data)
+					});
+		 		} else {
+		 			console.log("remove")
+		 			$(this).closest('div').next().children('ul').children().each(function() {
+		 				tagList.push($(this).text().trim())
+		 			})
+		 			console.log(tagList)
+		 			jsonData.tagList = tagList
+		 			$.post("/removeTags", jsonData, function( data ) {
+					  console.log(data)
+					});
+		 		}
+			    $(this).toggleClass('fa-star');
+			    $(this).toggleClass('fa-star-o');		
+			});
+		 </script>
+	</div>
+	</div>
+</body>
+</html>

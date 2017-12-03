@@ -59,13 +59,17 @@
      	<ol>
      		<% collapseIndex = 0 %>
 	    	<% if(result) { %>
+	    		<ol>
 	    		<% for(i=0;i < result.length;i++) { %>
+	    		<div class = "row">
+    					<h3><li><%= result[i].question.content_title %> </li> </h3>
+    			</div>
 		    		<% var displayHTML = result[i].question.content_html %>
 		    		<% displayHTML =  displayHTML.replace(/\\n/g, "<br>");%>
 	    			<% displayHTML =  displayHTML.replace("<br><br>", "");%>
 	    			<% displayHTML =  displayHTML.slice(0,-1)%>
 	    			<div class ="row">
-	    				<li> <%- displayHTML %> </li>
+	    				<%- displayHTML %>
 	    			</div>
 	    			<% if(result[i].answer[0] != null) { %>
 	    				<div class = "row">

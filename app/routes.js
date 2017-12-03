@@ -7,19 +7,28 @@ Maintain two indexes:
 
 var Activity = require('./models/activity');
 var db = require('../config/database')
+var Tags = require('../app/models/tags');
 
 module.exports = function(app, client, passport) {
+
+	var currentPage = 1;
 
 	//login endpoint
 	app.get('/', function(req, res) {
 		if (req.isAuthenticated())
-			res.redirect('/searchPage');
-		res.render('login.ejs', { message: "" });
+			res.redirect('/feed/1');
+		else
+			res.render('login.ejs', { message: "" });
 	});
 
-	app.get('/searchPage', function(req,res) {
+	app.get('/searchPage', isLoggedIn, function(req,res) {
 		res.render('searchPage.ejs', {result:""});
 	});
+
+	// app.get('/feed', isLoggedIn, function(req,res) {
+
+	// 	res.render('feed.ejs', {result:""});
+	// });
 
 	app.post('/searchPage', function(req, res) {
 		db.elastic.search({
@@ -97,7 +106,7 @@ module.exports = function(app, client, passport) {
 		    }
 		    req.logIn(user, function(err) {
 			    if (err) { return next(err); }
-	      		return res.redirect('/searchPage');
+	      		return res.redirect('/feed/1');
 		    });
   		})(req, res, next);
 	});
@@ -109,13 +118,32 @@ module.exports = function(app, client, passport) {
 
 	//signup post endpoint
 	app.post('/signup', passport.authenticate('local-signup', {
-		successRedirect : '/profile',
+		successRedirect : '/',
 		failureRedirect : '/signup',
 		failureFlash : true
 	}));
 
+	app.get('/feed/next', isLoggedIn, function(req,res) {
+		currentPage+=1
+		res.redirect('/feed/'+currentPage)
+	})
+
+	app.get('/feed/prev', isLoggedIn, function(req,res) {
+		if(currentPage!=1)
+			currentPage-=1
+		res.redirect('/feed/'+currentPage)
+	})
+
+	app.get('/feed/newUser', isLoggedIn, function(req,res) {
+		var jsonResult = new Object()
+		jsonResult.newUser = true
+		jsonResult.result = null
+		res.render("feed.ejs", jsonResult)
+	})
+
 	//feed endpoint
-	app.get('/feed', isLoggedIn, function(req, res) {
+	app.get('/feed/:pageNumber', isLoggedIn, function(req, res) {
+		currentPage = parseInt(req.params.pageNumber)
 		
 		// if (!req.session || !req.session.user)
 		// 	res.render('login.ejs', {message: "Username not selected"});
@@ -132,27 +160,92 @@ module.exports = function(app, client, passport) {
 		// 	}
 		// });
 
-		// var userTags;
 
-		// search for tags_like_each in ES user
-		// var questionSuggestionSearch = client.elastic.search({
-		// 	index: 'user',
-		// 	type: 'document',
-		// 	body: {
-		// 		query: {
-		// 			match: {
-		// 				tags: userTags
-		// 			}
-		// 		},
-		// 		aggregations: {
-		// 			tags_like_user: {
-		// 				field: tags,
-		// 				min_doc_count: 1
-		// 			}
-		// 		}
-		// 	}
-		});
+		var query = Tags.find({'user_id' : req.user.local.email}).sort('-tags.count').limit(5)
+		var json = query.exec(function (err, result) {
+		    if (err) return next(err);
+		    var tagList = new Array();
+			// var userTags;
+			for(i=0;i<result.length;i++) {
+				var tagName = result[i].tags.name
+				tagList[i] = tagName
+			}
+			console.log(tagList)
+			if(!(tagList && tagList.length)){
+				res.redirect("/feed/newUser")   
+			} 
+			// // search for tags_like_each in ES user
+			db.elastic.search({
+				"from" : (req.params.pageNumber-1)*10, "size" : 10,
+				index: 'contents',
+				type: 'text',
+				body: {
+					query: {
+		                "bool" : {
+	                		"must" : [
+	                    		{ "term" : { "isAccepted" : "false" } }, 
+	                    		{ "terms" : { "tags" : tagList} }
+	                		]
+	            		}
+					}
+				}
+			}).then(function (resp) {
+				var jsonResult = new Object();
+			    var hits = resp.hits.hits;
+			    jsonResult.result = hits
+			    jsonResult.newUser = false
+			    jsonResult.feedStartNumber = (req.params.pageNumber-1)*10+1
+			    res.render('feed.ejs', jsonResult)
+			})
 
+		})
+	})
+
+	app.post('/addTags', isLoggedIn, function(req,res) {
+		var tagList = req.body.tagList
+		for(i=0;i<tagList.length;i++) {
+			Tags.findOneAndUpdate({"user_id" : req.user.local.email, "tags.name" : tagList[i]} , 
+				{"$inc" : {"tags.count" : 1}}, 
+				{upsert: true, new : true, runValidators : true}, // options
+			    function (err, doc) { // callback
+			        if (err) {
+			        	console.log(err)
+			        }
+		    })
+		}
+	})
+
+	app.post('/removeTags', isLoggedIn, function(req,res) {
+		var tagList = req.body.tagList
+		for(i=0;i<tagList.length;i++) {
+			Tags.findOneAndUpdate({"user_id" : req.user.local.email, "tags.name" : tagList[i]} , 
+				{"$inc" : {"tags.count" : -1}}, 
+				{upsert: true, new : true, runValidators : true}, // options
+			    function (err, doc) { // callback
+			        if (err) {
+			        	console.log(err)
+			        }
+			    })
+		}
+	})
+
+	app.post('/sendFav', isLoggedIn, function(req,res) {
+		console.log(JSON.stringify(req.body))
+		var favList = req.body.favTagList
+		var commaSeparatedList = req.body.commaSeparatedTags.split(',')
+		var completeList = favList.concat(commaSeparatedList)
+		for(i=0;i<completeList.length;i++) {
+			Tags.findOneAndUpdate({"user_id" : req.user.local.email, "tags.name" : completeList[i]} , 
+				{"$inc" : {"tags.count" : 1}}, 
+				{upsert: true, new : true, runValidators : true}, // options
+			    function (err, doc) { // callback
+			        if (err) {
+			        	console.log(err)
+			        }
+		    })			
+		}
+		res.redirect('/')
+	})
 		/*
 		Example:
 			{
@@ -191,13 +284,13 @@ module.exports = function(app, client, passport) {
 		req.logout();
 		if(req.user)
 			res.render('/', { message: "User data still present"});
-	    var now = (new Date()).toJSON();
-	    log.action = "Logout";
-		log.timestamp = now;
-		Login.create(log, function (error, user) {
-		if (error)
-			console.log(error);
-		});
+	 //    var now = (new Date()).toJSON();
+	 //    log.action = "Logout";
+		// log.timestamp = now;
+		// Login.create(log, function (error, user) {
+		// if (error)
+		// 	console.log(error);
+		// });
 		res.redirect('/');
 	});
 
@@ -211,6 +304,10 @@ module.exports = function(app, client, passport) {
 
 		//IF NOT REDITECT TO HOME PAGE
 		res.redirect('/');
+	}
+
+	function getTagsList(user) {
+
 	}
 
 }
