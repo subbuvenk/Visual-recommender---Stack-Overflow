@@ -6,16 +6,92 @@ Maintain two indexes:
 //Source url: http://opensourceconnections.com/blog/2016/09/09/better-recsys-elasticsearch/
 
 var Activity = require('./models/activity');
-
+var db = require('../config/database')
 
 module.exports = function(app, client, passport) {
 
 	//login endpoint
 	app.get('/', function(req, res) {
 		if (req.isAuthenticated())
-			res.redirect('/profile');
+			res.redirect('/searchPage');
 		res.render('login.ejs', { message: "" });
 	});
+
+	// //login endpoint
+	// app.get('/', function(req, res) {
+	// 	// if (req.isAuthenticated())
+	// 	res.redirect('/searchPage');
+	// 	// res.render('login.ejs', { message: "" });
+	// });
+
+	app.get('/searchPage', function(req,res) {
+		res.render('searchPage.ejs', {result:""});
+	});
+
+	app.post('/searchPage', function(req, res) {
+		db.elastic.search({
+			index : 'contents',
+			type : 'text',
+			body: {
+    			"query": {
+			    	"bool":{
+         				"must":[{
+			      			"query_string": {
+			        			query: req.body.search_query
+			      			}
+			      		},
+			      		{
+				        "match": {
+				            "type": "question"
+				          }
+				        }]
+			      	}
+		    	}
+			}
+		}).then(function (resp) {
+			var jsonResult = new Object();
+		    var hits = resp.hits.hits;
+		    var question_id = new Array(hits.length)
+		    var result = new Array(hits.length)
+		    // for(i=0;i<hits.length; i++) {
+		    // 	question_id[i] = hits[i]._source.question_id;
+		    // }
+		    var completed = 0
+		    console.log("hits count" + hits.length)
+		    for(i=0;i<hits.length;i++) {
+		    	result[i] = new Object()
+		    	result[i].question = hits[i]._source
+		    	question_id = hits[i]._source.question_id
+			    db.elastic.search({
+			    	index : 'contents',
+			    	type : 'text',
+			    	body : {
+			    		query : {
+			                "bool" : {
+	                    		"must" : [
+	                        		{ "term" : { "question_id" : question_id } }, 
+	                        		{ "terms" : { "type" : ["answer", "accepted-answer"] } } 
+	                    		]
+	                		}
+			    		}
+			    	}
+			    }).then(function(resp) {
+			    	var answer_hits = resp.hits.hits;
+			    	result[completed].answer = answer_hits
+			    	completed++;
+			    	if(completed==hits.length) after_forloop()
+		    	})
+	    	}
+
+			function after_forloop() {
+				jsonResult.result = result
+			    res.render('searchPage.ejs', jsonResult)
+			}
+			  // ...do something with the HTML...
+		}, function (err) {
+		    console.trace(err.message);
+		});
+	})
 
 	//login post
 	app.post('/', function(req, res, next) {
@@ -38,7 +114,7 @@ module.exports = function(app, client, passport) {
 					console.log(error);
 				} 
 			});
-	      		return res.redirect('/profile');
+	      		return res.redirect('/searchPage');
 		    });
   		})(req, res, next);
 	});
@@ -141,6 +217,8 @@ module.exports = function(app, client, passport) {
 		});
 		res.redirect('/');
 	});
+
+
 
 	function isLoggedIn(req, res, next) {
 

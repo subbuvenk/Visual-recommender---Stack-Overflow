@@ -1,0 +1,98 @@
+<!doctype html>
+<html>
+<head>
+	<title>Stack Overflow Recommender</title>
+	<meta charset="UTF-8">   
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+	<style>
+		body {
+			padding-top:80px;
+		}
+	</style>
+</head>
+<body>
+	
+	<nav class="navbar navbar-default navbar-fixed-top">
+	    <div class="container">
+	        <!-- Brand and toggle get grouped for better mobile display -->
+	        <div class="navbar-header page-scroll">
+	            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+	                <span class="sr-only">Toggle navigation</span>
+	                <span class="icon-bar"></span>
+	                <span class="icon-bar"></span>
+	                <span class="icon-bar"></span>
+	            </button>
+	            <a class="navbar-brand" href="/"><h4>Feed</h4></a>
+	            <a class="navbar-brand" href="/searchPage"><h4>Search</h4></a>
+	            <a class="navbar-brand" href="/"><h4>Visualization</h4></a>
+	        </div>
+	        <!-- Collect the nav links, forms, and other content for toggling -->
+	        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+	            <ul class="nav navbar-nav navbar-right">
+	                <li>
+	                    <a href=""><h4>Profile</h4></a>
+	                </li>
+	            </ul>
+	        </div>
+	        <!-- /.navbar-collapse -->
+	    </div>
+	    <!-- /.container-fluid -->
+	</nav>
+
+	<div class="container">
+
+		<form action="/searchPage" method="post">
+			<div class = "row">
+				<div class ="col-md-9">
+		            <input type="text" class="form-control" name="search_query">
+	        	</div>
+	        	<div class ="col-md-3">
+		        	<button type="submit" class="btn btn-primary btn-lg">Search</button>
+		    	</div>
+	    	</div>
+	    </form>
+
+     <div class="col-md-10 blogShort">
+     	<ol>
+     		<% collapseIndex = 0 %>
+	    	<% if(result) { %>
+	    		<% for(i=0;i < result.length;i++) { %>
+		    		<% var displayHTML = result[i].question.content_html %>
+		    		<% displayHTML =  displayHTML.replace(/\\n/g, "<br>");%>
+	    			<% displayHTML =  displayHTML.replace("<br><br>", "");%>
+	    			<% displayHTML =  displayHTML.slice(0,-1)%>
+	    			<div class ="row">
+	    				<li> <%- displayHTML %> </li>
+	    			</div>
+	    			<% if(result[i].answer[0] != null) { %>
+	    				<div class = "row">
+	    				<% for(j=0; j< result[i].answer.length; j++) { %>
+	    					<div class = "col-md-4">
+		    					<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapse<%= collapseIndex %>" aria-expanded="false" aria-controls="collapse<%= collapseIndex %>">
+								    Answer <%= j+1 %>
+								</button>
+		    					<div class="collapse" id="collapse<%= collapseIndex %>"> 
+		    						<% var displayAnswer = result[i].answer[j]._source.content_html %>
+						    		<% displayAnswer =  displayAnswer.replace(/\\n/g, "<br>");%>
+					    			<% displayAnswer =  displayAnswer.replace("<br><br>", "");%>
+			    					<div class = "card card-body"> <%- displayAnswer %> </div>
+		    					</div>
+		    				</div>
+	    					<% collapseIndex++ %>
+						<% } %>
+						</div>
+						<br>
+	    			<% } %>
+	    		<% } %>
+	    	<% } %>
+    	</ol>
+
+	 </div>
+
+	</div>
+	</div>
+</body>
+</html>
