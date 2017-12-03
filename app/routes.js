@@ -5,7 +5,6 @@ Maintain two indexes:
 */
 //Source url: http://opensourceconnections.com/blog/2016/09/09/better-recsys-elasticsearch/
 
-var Activity = require('./models/activity');
 var db = require('../config/database')
 var Tags = require('../app/models/tags');
 
@@ -230,7 +229,6 @@ module.exports = function(app, client, passport) {
 	})
 
 	app.post('/sendFav', isLoggedIn, function(req,res) {
-		console.log(JSON.stringify(req.body))
 		var favList = req.body.favTagList
 		var commaSeparatedList = req.body.commaSeparatedTags.split(',')
 		var completeList = favList.concat(commaSeparatedList)
@@ -245,6 +243,14 @@ module.exports = function(app, client, passport) {
 		    })			
 		}
 		res.redirect('/')
+	})
+
+	app.get('/getUserData', isLoggedIn, function(req,res) {
+		var query = Tags.find({'user_id' : req.user.local.email},{tags : 1, _id : 0}).sort('-tags.count').limit(5)
+		var json = query.exec(function (err, result) {
+		    if (err) console.log(err);
+		    res.send(JSON.stringify(result))
+		})
 	})
 		/*
 		Example:
