@@ -38,6 +38,7 @@ module.exports = function(app, client, passport) {
 			    	"bool":{
          				"must":[{
 			      			"query_string": {
+			      				"fields" : ["content_title"], // change fields for query 
 			        			query: req.body.search_query
 			      			}
 			      		},
