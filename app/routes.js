@@ -252,6 +252,7 @@ module.exports = function(app, client, passport) {
 
 	app.get('/getUserData', isLoggedIn, function(req,res) {
 		var jsonResult = new Object()
+		jsonResult.user_id = req.user.local.email
 		jsonResult.totalTagCount = new Object()
 		jsonResult.totalUsersForTag = new Object()
 		var query = Tags.find({'user_id' : req.user.local.email},{tags : 1, _id : 0}).sort('-tags.count').limit(5)
