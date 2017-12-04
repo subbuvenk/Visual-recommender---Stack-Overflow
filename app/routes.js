@@ -253,6 +253,7 @@ module.exports = function(app, client, passport) {
 	app.get('/getUserData', isLoggedIn, function(req,res) {
 		var jsonResult = new Object()
 		jsonResult.totalTagCount = new Object()
+		jsonResult.totalUsersForTag = new Object()
 		var query = Tags.find({'user_id' : req.user.local.email},{tags : 1, _id : 0}).sort('-tags.count').limit(5)
 		var json = query.exec(function (err, result) {
 		    if (err) console.log(err);
@@ -275,16 +276,21 @@ module.exports = function(app, client, passport) {
 		    			console.log(JSON.stringify(result))
 		    			jsonResult.totalTagCount[res[0]._id] = res[0].total
 		    			completed++;
-		    			console.log("completed:"+completed+","+"result.length:"+result.length)
 		    			if(completed==result.length) callback()
 		    		})
 		    }
 		    function callback() {
-    			Tags.distinct('user_id').exec(function(err,ids) {
-				jsonResult.total_users = ids.length
-    			console.log(jsonResult)
-		    	res.send(JSON.stringify(jsonResult))
-		    	})
+		    	var completed_callback = 0
+		    	for(j=0;j<jsonResult.currentUser.length;j++) {
+	    			Tags.find({"tags.name" : jsonResult.currentUser[j].tags.name}).count().exec(function(err,count) {
+						jsonResult.totalUsersForTag[jsonResult.currentUser[completed_callback].tags.name] = count
+						completed_callback++;
+						if(completed_callback==jsonResult.currentUser.length) returncall()
+		    		})
+				}
+				function returncall() {
+					res.send(JSON.stringify(jsonResult))
+				}
 			}
 		})
 	})
