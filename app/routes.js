@@ -24,6 +24,10 @@ module.exports = function(app, client, passport) {
 		res.render('searchPage.ejs', {result:""});
 	});
 
+	app.get('/visualization', isLoggedIn, function(req,res) {
+		res.render('visualization.ejs', {message:""})
+	})
+
 	// app.get('/feed', isLoggedIn, function(req,res) {
 
 	// 	res.render('feed.ejs', {result:""});
