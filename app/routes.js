@@ -251,12 +251,50 @@ module.exports = function(app, client, passport) {
 	})
 
 	app.get('/getUserData', isLoggedIn, function(req,res) {
+		var jsonResult = new Object()
+		jsonResult.totalTagCount = new Object()
 		var query = Tags.find({'user_id' : req.user.local.email},{tags : 1, _id : 0}).sort('-tags.count').limit(5)
 		var json = query.exec(function (err, result) {
 		    if (err) console.log(err);
-		    res.send(JSON.stringify(result))
+		    jsonResult.currentUser = result;
+		    var completed = 0;
+		    for(i=0;i<result.length;i++) {
+		    	Tags.aggregate([
+		    		{
+		    			$match : {
+		    				"tags.name" : result[i].tags.name
+		    			}
+		    		}, 
+		    		{
+		    			$group : {
+		    				_id : result[i].tags.name,
+		    				total :  {$sum : "$tags.count" }
+		    			}
+		    		}], function(err, res) {
+		    			if(err) console.log(err)
+		    			console.log(JSON.stringify(result))
+		    			jsonResult.totalTagCount[res[0]._id] = res[0].total
+		    			completed++;
+		    			console.log("completed:"+completed+","+"result.length:"+result.length)
+		    			if(completed==result.length) callback()
+		    		})
+		    }
+		    function callback() {
+    			Tags.distinct('user_id').exec(function(err,ids) {
+				jsonResult.total_users = ids.length
+    			console.log(jsonResult)
+		    	res.send(JSON.stringify(jsonResult))
+		    	})
+			}
 		})
 	})
+
+	// app.get('/getUserData', isLoggedIn, function(req,res) {
+	// 	Tags.distinct('user_id').exec(function(err,ids){
+	// 		total_users = ids.length
+	// 		Tags.find({})
+	// 	})
+	// })
 		/*
 		Example:
 			{

@@ -30,12 +30,9 @@
 	            <a class="navbar-brand" href="/visualization"><h4>Visualization</h4></a>
 	        </div>
 	        <!-- Collect the nav links, forms, and other content for toggling -->
-	        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-	            <ul class="nav navbar-nav navbar-right">
-	                <li>
-	                    <a href=""><h4>Profile</h4></a>
-	                </li>
-	            </ul>
+	        <div class="collapse navbar-collapse navbar-right" id="bs-example-navbar-collapse-1">
+	            <a class="navbar-brand" href=""><h4>Profile</h4></a>
+                <a class="navbar-brand" href="/logout"><h4>Sign out</h4></a>
 	        </div>
 	        <!-- /.navbar-collapse -->
 	    </div>
@@ -44,59 +41,59 @@
 
 	<div class="container">
 
-		<form action="/searchPage" method="post">
-			<div class = "row">
-				<div class ="col-md-9">
-		            <input type="text" class="form-control" name="search_query">
-	        	</div>
-	        	<div class ="col-md-3">
-		        	<button type="submit" class="btn btn-primary btn-lg">Search</button>
+		<div class="col-md-12">
+			<form action="/searchPage" method="post">
+				<div class = "row">
+					<div class ="col-md-9">
+			            <input type="text" class="form-control" name="search_query">
+		        	</div>
+		        	<div class ="col-md-3">
+			        	<button type="submit" class="btn btn-primary btn-lg">Search</button>
+			    	</div>
 		    	</div>
-	    	</div>
-	    </form>
+		    </form>
+		</div>
 
-     <div class="col-md-10 blogShort">
-     	<ol>
-     		<% collapseIndex = 0 %>
-	    	<% if(result) { %>
-	    		<ol>
-	    		<% for(i=0;i < result.length;i++) { %>
-	    		<div class = "row">
-    					<h3><li><%= result[i].question.content_title %> </li> </h3>
-    			</div>
-		    		<% var displayHTML = result[i].question.content_html %>
-		    		<% displayHTML =  displayHTML.replace(/\\n/g, "<br>");%>
-	    			<% displayHTML =  displayHTML.replace("<br><br>", "");%>
-	    			<% displayHTML =  displayHTML.slice(0,-1)%>
-	    			<div class ="row">
-	    				<%- displayHTML %>
-	    			</div>
-	    			<% if(result[i].answer[0] != null) { %>
-	    				<div class = "row">
-	    				<% for(j=0; j< result[i].answer.length; j++) { %>
-	    					<div class = "col-md-4">
-		    					<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapse<%= collapseIndex %>" aria-expanded="false" aria-controls="collapse<%= collapseIndex %>">
-								    Answer <%= j+1 %>
-								</button>
-		    					<div class="collapse" id="collapse<%= collapseIndex %>"> 
-		    						<% var displayAnswer = result[i].answer[j]._source.content_html %>
-						    		<% displayAnswer =  displayAnswer.replace(/\\n/g, "<br>");%>
-					    			<% displayAnswer =  displayAnswer.replace("<br><br>", "");%>
-			    					<div class = "card card-body"> <%- displayAnswer %> </div>
-		    					</div>
-		    				</div>
-	    					<% collapseIndex++ %>
-						<% } %>
-						</div>
-						<br>
+	    <div class="col-md-12">
+	     		<% collapseIndex = 0 %>
+		    	<% if(result) { %>
+		    		<ol>
+		    		<% for(i=0; i < result.length;i++) { %>
+			    		<div class = "col-md-12">
+	    					<h3><li><%= result[i].question.content_title %></li></h3>
+				    		<% var displayHTML = result[i].question.content_html %>
+				    		<% displayHTML =  displayHTML.replace(/\\n/g, "<br>");%>
+			    			<% displayHTML =  displayHTML.replace("<br><br>", "");%>
+			    			<% displayHTML =  displayHTML.slice(0,-1)%>
+			    			<div class = "row">
+			    				<div class = "col-md-12">
+		    						<%- displayHTML %>
+			    				</div>
+			    			</div>
+				    	</div>
+		    			<% if(result[i].answer[0] != null) { %>
+		    				<div class = "row">
+			    				<% for(j=0; j< result[i].answer.length; j++) { %>
+			    					<div class = "col-md-4">
+				    					<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapse<%= collapseIndex %>" aria-expanded="false" aria-controls="collapse<%= collapseIndex %>">
+										    Answer <%= j+1 %>
+										</button>
+				    					<div class="collapse" id="collapse<%= collapseIndex %>"> 
+				    						<% var displayAnswer = result[i].answer[j]._source.content_html %>
+								    		<% displayAnswer =  displayAnswer.replace(/\\n/g, "<br>");%>
+							    			<% displayAnswer =  displayAnswer.replace("<br><br>", "");%>
+					    					<div class = "card card-body"> <%- displayAnswer %> </div>
+				    					</div>
+				    				</div>
+			    					<% collapseIndex++ %>
+								<% } %>
+							</div>
+							<br>
+		    			<% } %>
 	    			<% } %>
-	    		<% } %>
-	    	<% } %>
-    	</ol>
-
-	 </div>
-
-	</div>
+		    		</ol>
+		    	<% } %>
+		 </div>
 	</div>
 </body>
 </html>
