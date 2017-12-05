@@ -118,7 +118,7 @@
 		 		if($(this).hasClass("fa-star-o")) {
 		 			console.log("add")
 		 			$(this).closest('div').next().children('ul').children().each(function() {
-		 				tagList.push($(this).text().trim())
+		 				tagList.push($(this).text().toLowerCase().trim())
 		 			})
 		 			console.log(tagList)
 		 			jsonData.tagList = tagList
