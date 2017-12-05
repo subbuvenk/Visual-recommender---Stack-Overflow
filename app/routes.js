@@ -281,17 +281,22 @@ module.exports = function(app, client, passport) {
 		    		})
 		    }
 		    function callback() {
-		    	var completed_callback = 0
-		    	for(j=0;j<jsonResult.currentUser.length;j++) {
-	    			Tags.find({"tags.name" : jsonResult.currentUser[j].tags.name}).count().exec(function(err,count) {
-						jsonResult.totalUsersForTag[jsonResult.currentUser[completed_callback].tags.name] = count
-						completed_callback++;
-						if(completed_callback==jsonResult.currentUser.length) returncall()
-		    		})
-				}
-				function returncall() {
-					res.send(JSON.stringify(jsonResult))
-				}
+    			Tags.find({"tags.name" : jsonResult.currentUser[0].tags.name}).count().exec(function(err,count) {
+					jsonResult.totalUsersForTag[jsonResult.currentUser[0].tags.name] = count
+	    			Tags.find({"tags.name" : jsonResult.currentUser[1].tags.name}).count().exec(function(err,count) {
+						jsonResult.totalUsersForTag[jsonResult.currentUser[1].tags.name] = count
+		    			Tags.find({"tags.name" : jsonResult.currentUser[2].tags.name}).count().exec(function(err,count) {
+							jsonResult.totalUsersForTag[jsonResult.currentUser[2].tags.name] = count
+			    			Tags.find({"tags.name" : jsonResult.currentUser[3].tags.name}).count().exec(function(err,count) {
+								jsonResult.totalUsersForTag[jsonResult.currentUser[3].tags.name] = count
+				    			Tags.find({"tags.name" : jsonResult.currentUser[4].tags.name}).count().exec(function(err,count) {
+									jsonResult.totalUsersForTag[jsonResult.currentUser[4].tags.name] = count
+									res.send(JSON.stringify(jsonResult))
+				    			})			    					    			
+			    			})
+		    			})
+	    			})
+	    		})
 			}
 		})
 	})
