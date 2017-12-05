@@ -37,6 +37,7 @@
 		</nav>
 		<br><br><br><br><br><br><br>
 		<div id = 'donut' class='donut-chart'></div>
+		<div id = 'compare-world' class='radar-chart'></div>
 		<script type="text/javascript">
 			var a = $.ajax({
 				dataType: "json",
@@ -49,15 +50,26 @@
 			function getData(data){
 				b = data;
 				var k = JSON.parse(JSON.stringify(b))
-				generateGraph(k.currentUser,k.user_id)
+				userData = {};
+				for (var i = k.currentUser.length - 1; i >= 0; i--) {
+					var name = k.currentUser[i]['tags']['name']
+					var count = k.currentUser[i]['tags']['count']
+					if(name == ''){
+						continue
+					}
+					else{
+						userData[name] = count
+					}
+				}
+				generateDonut(k.currentUser,k.user_id)
+				generateX(Object.keys(k.totalTagCount),k.totalTagCount,k.totalUsersForTag,userData)
 			}
-			//var headings = []
 			var vals = []
-			function generateGraph(dataCol,name){
+			function generateDonut(dataCol,name){
 				for (var i = dataCol.length - 1; i >= 0; i--) {
 					var headings = []
 					if (dataCol[i]['tags']['name'] == '') {
-						headings.push("EmptyTag")
+						continue;
 					}
 					else{
 						headings.push(dataCol[i]['tags']['name']);
@@ -74,7 +86,8 @@
 					},
 					donut:{
 						title:name+'\'s tag distribution'
-					}	
+					},
+
 				});
 				addToChart(chart)
 			};
@@ -87,6 +100,30 @@
 					});
 				}
 			};
+
+			function generateX(keys, totalTagCount,totalUsersForTag,currentUser){
+				var world = ['world']
+				var user = ['user']
+				for(k in keys){
+					world.push(Math.round(totalTagCount[keys[k]]/totalUsersForTag[keys[k]]))
+					user.push(currentUser[keys[k]])	
+				}
+				var chart = c3.generate({
+					bindto : '#compare-world',
+    				data: {
+        				columns: [
+				            world,
+				            user
+        				]
+    				},
+    				axis: {
+        				x: {
+            				type: 'category',
+            				categories: keys
+        				}
+    				}
+				});
+			}
 		</script>
 	</body>
 </html>
