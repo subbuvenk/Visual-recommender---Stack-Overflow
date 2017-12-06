@@ -5,8 +5,9 @@ Maintain two indexes:
 */
 //Source url: http://opensourceconnections.com/blog/2016/09/09/better-recsys-elasticsearch/
 
-var db = require('../config/database')
+var db = require('../config/database');
 var Tags = require('../app/models/tags');
+var Favs = require('../app/models/favs');
 
 module.exports = function(app, client, passport) {
 
@@ -26,6 +27,10 @@ module.exports = function(app, client, passport) {
 
 	app.get('/visualization', isLoggedIn, function(req,res) {
 		res.render('visualization.ejs', {message:""})
+	})
+
+	app.get('/profile', isLoggedIn, function(req,res) {
+		res.render('profile.ejs', {message:""})
 	})
 
 	// app.get('/feed', isLoggedIn, function(req,res) {
@@ -199,6 +204,7 @@ module.exports = function(app, client, passport) {
 			    jsonResult.result = hits
 			    jsonResult.newUser = false
 			    jsonResult.feedStartNumber = (req.params.pageNumber-1)*10+1
+			    console.log(jsonResult);
 			    res.render('feed.ejs', jsonResult)
 			})
 
@@ -231,12 +237,25 @@ module.exports = function(app, client, passport) {
 			        }
 			    })
 		}
-	})
+	});
+
+	app.get('/getFav', isLoggedIn, function(req, res) {
+		Favs.findOne({ 'user_id': req.user.local.email}, 'tags', function (err, tags) {
+			if (err) console.log(err);
+			console.log(tags);
+			res.send(JSON.stringify(tags['tags'])); // Space Ghost is a talk show host.
+		})
+	});
 
 	app.post('/sendFav', isLoggedIn, function(req,res) {
-		var favList = req.body.favTagList
-		var commaSeparatedList = req.body.commaSeparatedTags.split(',')
-		var completeList = favList.concat(commaSeparatedList)
+		var favList = req.body.favTagList;
+		var completeList = favList;
+		console.log(favList , req.body.commaSeparatedTags);
+		if((req.body.commaSeparatedTags !== undefined) && (req.body.commaSeparatedTags !== null) && (req.body.commaSeparatedTags !== "")) {
+			var commaSeparatedList = req.body.commaSeparatedTags.split(',')
+			completeList = favList.concat(commaSeparatedList)
+		}
+
 		for(i=0;i<completeList.length;i++) {
 			Tags.findOneAndUpdate({"user_id" : req.user.local.email, "tags.name" : completeList[i]} , 
 				{"$inc" : {"tags.count" : 1}}, 
@@ -247,8 +266,31 @@ module.exports = function(app, client, passport) {
 			        }
 		    })			
 		}
-		res.redirect('/')
-	})
+
+		var newFavs = new Favs({
+			user_id: req.user.local.email,
+			tags: completeList
+		});
+		newFavs.save(function (err) {
+			if (err) {
+              res.status(401).json({
+                message: err
+              });
+              console.log(err);
+            }
+		// Add else
+		  else{
+
+              res.redirect('/');
+        	}
+		});
+		// res.redirect('/');
+	});
+
+	app.post('/updateFav', isLoggedIn, function(req, res) {
+		console.log(req.body);
+		res.redirect('/profile');
+	});
 
 	app.get('/getUserData', isLoggedIn, function(req,res) {
 		var jsonResult = new Object()
@@ -299,7 +341,7 @@ module.exports = function(app, client, passport) {
 	    		})
 			}
 		})
-	})
+	});
 
 	// app.get('/getUserData', isLoggedIn, function(req,res) {
 	// 	Tags.distinct('user_id').exec(function(err,ids){
@@ -328,7 +370,7 @@ module.exports = function(app, client, passport) {
 
 	//signup form
 	app.get('/signup', function(req, res) {
-		res.render('signup.ejs', { message: req.flash('signupMessage') });
+		res.render('signup.ejs', { message: "" });
 	});
 
 	//signup post
@@ -365,10 +407,6 @@ module.exports = function(app, client, passport) {
 
 		//IF NOT REDITECT TO HOME PAGE
 		res.redirect('/');
-	}
-
-	function getTagsList(user) {
-
 	}
 
 }
