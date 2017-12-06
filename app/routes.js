@@ -243,7 +243,11 @@ module.exports = function(app, client, passport) {
 		Favs.findOne({ 'user_id': req.user.local.email}, 'tags', function (err, tags) {
 			if (err) console.log(err);
 			console.log(tags);
-			res.send(JSON.stringify(tags['tags'])); // Space Ghost is a talk show host.
+			if(tags==null) {
+				res.send("")				
+			} else {
+				res.send(JSON.stringify(tags['tags'])); 
+			}
 		})
 	});
 
@@ -344,31 +348,6 @@ module.exports = function(app, client, passport) {
 			}
 		})
 	});
-
-	// app.get('/getUserData', isLoggedIn, function(req,res) {
-	// 	Tags.distinct('user_id').exec(function(err,ids){
-	// 		total_users = ids.length
-	// 		Tags.find({})
-	// 	})
-	// })
-		/*
-		Example:
-			{
-			    "query": {
-			        "match": {
-			            "movies_liked": "Terminator"
-			        }
-			    },
-			    "aggregations": {
-			        "movies_like_terminator": {
-			            "significant_terms": {
-			                "field": "movies_liked",
-			                "min_doc_count": 1
-			            }
-			        }
-			    }
-			}
-		*/
 
 	//signup form
 	app.get('/signup', function(req, res) {
