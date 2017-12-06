@@ -100,8 +100,10 @@
 	    		var tags = $('.tm-tag');
 	    		var send = [];
 	    		for(i=0; i<tags.length; i++) {
-	    			send.push(tags[i].innerText.substring(0,tags[i].innerText-1));
+	    			var temp = tags[i].innerText.substring(0,tags[i].innerText.length-1)
+	    			send.push(temp);
 	    		}
+	    		console.log(send);
 				$.ajax({  
 				    type: "POST",  
 				    url: "/updateFav",  

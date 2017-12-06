@@ -278,7 +278,6 @@ module.exports = function(app, client, passport) {
               });
               console.log(err);
             }
-		// Add else
 		  else{
 
               res.redirect('/');
@@ -288,7 +287,10 @@ module.exports = function(app, client, passport) {
 	});
 
 	app.post('/updateFav', isLoggedIn, function(req, res) {
-		console.log(req.body);
+		Favs.findOne({user_id: req.user.local.email}, function(err, doc) {
+			doc.tags = req.body.tags
+			doc.save();
+		});
 		res.redirect('/profile');
 	});
 
